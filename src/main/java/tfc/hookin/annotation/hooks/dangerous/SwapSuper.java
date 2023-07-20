@@ -1,4 +1,4 @@
-package tfc.hookin.annotation.hooks;
+package tfc.hookin.annotation.hooks.dangerous;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -11,7 +11,6 @@ import java.lang.annotation.Target;
  */
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.CLASS)
-@Deprecated // hints IDE to warn devs who use this
 public @interface SwapSuper {
 	Class<?> value();
 }

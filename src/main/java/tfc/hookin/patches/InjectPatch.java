@@ -52,11 +52,6 @@ public class InjectPatch extends Patch<MethodNode> {
 				sub = sub.substring(sub.indexOf("<") + 1, sub.indexOf(">"));
 				
 				String ret = DescriptorUtils.extractReturnType(refDesc);
-//				char primitive = DescriptorUtils.getPrimitiveName(
-//						ret.startsWith("L") ?
-//								ret.substring(1, sub.length() - 1) :
-//								"lol"
-//				);
 				char primitive = ret.charAt(0);
 				if (primitive != 'L' && primitive != '[') sub = "" + primitive;
 				
@@ -83,18 +78,45 @@ public class InjectPatch extends Patch<MethodNode> {
 				;
 	}
 	
-	protected InsnList genCICreation(int local, MethodNode ref) {
+	protected InsnList genCICreation(int local, MethodNode ref, boolean takeValue) {
 		String ciType = ciType(ref.desc);
 		
 		InsnList list = new InsnList();
 		// new CallInfo();
 		list.add(new TypeInsnNode(Opcodes.NEW, ciType));
-		list.add(new InsnNode(Opcodes.DUP));
+		if (takeValue) {
+			list.add(new InsnNode(Opcodes.DUP_X1));
+			list.add(new InsnNode(Opcodes.SWAP));
+		} else {
+			list.add(new InsnNode(Opcodes.DUP));
+		}
+		
+		if (takeValue) {
+			// find type
+			char prim = 'L';
+			String ret = DescriptorUtils.extractReturnType(ref.desc);
+			if (ret.length() == 1) {
+				prim = ret.charAt(0);
+				ret = DescriptorUtils.getObjName(prim);
+			} else ret = ret.substring(1, ret.length() - 1);
+			
+			// object
+			if (prim != 'L')
+				// primitive
+				list.add(new MethodInsnNode(
+						Opcodes.INVOKESTATIC,
+						ret, "valueOf",
+						"(" + prim + ")L" + ret + ";"
+				));
+		}
+		
 		list.add(new MethodInsnNode(
 				Opcodes.INVOKESPECIAL,
 				ciType,
 				"<init>",
-				"()V"
+				takeValue ?
+						"(Ljava/lang/Object;)V" :
+						"()V"
 		));
 		
 		if (cancellable) {
@@ -105,7 +127,7 @@ public class InjectPatch extends Patch<MethodNode> {
 		return list;
 	}
 	
-	protected InsnList genCICancel(int local, MethodNode ref) {
+	protected InsnList genCICancel(int local, MethodNode ref, boolean takeValue) {
 		String ciType = ciType(ref.desc);
 		
 		InsnList list = new InsnList();
@@ -118,10 +140,14 @@ public class InjectPatch extends Patch<MethodNode> {
 				"cancelled",
 				"Z"
 		));
-		Label label = new Label();
-		method.visitLabel(label);
-		LabelNode lbl = new LabelNode(label);
-		list.add(new JumpInsnNode(Opcodes.IFEQ, lbl));
+		
+		LabelNode lbl = null;
+		if (!takeValue) {
+			Label label = new Label();
+			method.visitLabel(label);
+			lbl = new LabelNode(label);
+			list.add(new JumpInsnNode(Opcodes.IFEQ, lbl));
+		}
 		
 		// typed return
 		if (!ref.desc.endsWith("V")) {
@@ -155,14 +181,15 @@ public class InjectPatch extends Patch<MethodNode> {
 						"()" + prim
 				));
 		}
-		list.add(new CancelReturn(injectionPoint.getValue(), ref.desc));
-		
-		list.add(lbl);
+		if (!takeValue) {
+			list.add(new CancelReturn(injectionPoint.getValue(), ref.desc));
+			list.add(lbl);
+		}
 		
 		return list;
 	}
 	
-	protected InsnList genInject(HookLabel start, HookLabel end, MethodNode ref, ClassNode clazz) {
+	protected InsnList genInject(HookLabel start, HookLabel end, MethodNode ref, ClassNode clazz, boolean takeValue) {
 		MethodInsnNode methodInject = new MethodInsnNode(
 				Modifier.isStatic(method.access) ? Opcodes.INVOKESTATIC : Opcodes.INVOKEVIRTUAL,
 				clazz.name,
@@ -185,7 +212,7 @@ public class InjectPatch extends Patch<MethodNode> {
 					String text = d.substring(0, d.indexOf(';'));
 					
 					if (text.equals("L" + ciType(ref.desc)))
-						list.add(genCICreation(local, ref));
+						list.add(genCICreation(local, ref, takeValue));
 					else
 						list.add(new VarInsnNode(Opcodes.ALOAD, i));
 					
@@ -216,7 +243,7 @@ public class InjectPatch extends Patch<MethodNode> {
 		
 		list.add(methodInject);
 		if (cancellable)
-			list.add(genCICancel(local, ref));
+			list.add(genCICancel(local, ref, takeValue));
 		
 		return list;
 	}
@@ -264,22 +291,51 @@ public class InjectPatch extends Patch<MethodNode> {
 		// do injection
 		if (injectionPoint.getValue() == Point.Type.HEAD) {
 			if (start != null)
-				node.instructions.insert(start, genInject(start, end, node, clazz));
+				node.instructions.insert(start, genInject(start, end, node, clazz, false));
 			else
-				node.instructions.insert(genInject(null, end, node, clazz));
+				node.instructions.insert(genInject(null, end, node, clazz, false));
 			
 			return 1;
-		} else if (injectionPoint.getValue() == Point.Type.RETURN) {
-			throw new RuntimeException("TODO");
-		} else if (injectionPoint.getValue() == Point.Type.FINAL_RETURN) {
-			throw new RuntimeException("TODO");
+		} else if (
+				injectionPoint.getValue() == Point.Type.RETURN ||
+						injectionPoint.getValue() == Point.Type.FINAL_RETURN
+		) {
+			ArrayList<AbstractInsnNode> targets = new ArrayList<>();
+			
+			if (injectionPoint.getValue() == Point.Type.RETURN) {
+				for (AbstractInsnNode instruction : node.instructions) {
+					if (
+							instruction.getOpcode() >= Opcodes.IRETURN &&
+									instruction.getOpcode() <= Opcodes.RETURN
+					) {
+						targets.add(instruction);
+					}
+				}
+			} else {
+				for (int i = node.instructions.size() - 1; i >= 0; i--) {
+					AbstractInsnNode instruction = node.instructions.get(i);
+					if (
+							instruction.getOpcode() >= Opcodes.IRETURN &&
+									instruction.getOpcode() <= Opcodes.RETURN
+					) {
+						targets.add(instruction);
+						break;
+					}
+				}
+			}
+			
+			for (AbstractInsnNode abstractInsnNode : targets) {
+				node.instructions.insertBefore(abstractInsnNode, genInject(start, end, node, clazz, true));
+			}
+			
+			return targets.size();
 		}
 		
 		List<AbstractInsnNode> targetNode = injectionPoint.selectInsn(node.instructions);
 		
 		int hits = 0;
 		for (AbstractInsnNode target : targetNode) {
-			InsnList methodInject = genInject(start, end, node, clazz);
+			InsnList methodInject = genInject(start, end, node, clazz, false);
 			
 			// TODO: number offset shifts?
 			if (injectionPoint.getShift() == Point.Shift.AFTER)

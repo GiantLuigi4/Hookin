@@ -54,18 +54,28 @@ public synchronized class
 			# stack: +0-2 = -2
 			invokevirtual java/io/PrintStream#println(Ljava/lang/String;)V
 		L4
-		line 12 L4
+		line 13 L4
+			# stack: +1-0 = +1
+			getstatic java/lang/System out Ljava/io/PrintStream;
+			# stack: +1-0 = +1
+			ldc float 64.0
+			# stack: +1-1 = 0
+			invokestatic java/lang/Float#valueOf(F)Ljava/lang/Float;
+			# stack: +0-2 = -2
+			invokevirtual java/io/PrintStream#println(Ljava/lang/Object;)V
+		L5
+		line 14 L5
 			# stack: +0-0 = 0
 			return
-		L5
+		L6
 		# variables:
-		# 	0 [Ljava/lang/String; args L0 L5
-		# 	1 Ltfc/hookin/util/ci/CallInfo; hookin$$CallInfo L1 L5
+		# 	0 [Ljava/lang/String; args L0 L6
+		# 	1 Ltfc/hookin/util/ci/CallInfo; hookin$$CallInfo L1 L6
 	}
 	
 	public static inject$test$hooks$TestHookin$_call_$preMain([Ljava/lang/String;Ltfc/hookin/util/ci/CallInfo;)V {
 		L0
-		line 15 L0
+		line 17 L0
 			# stack: +1-0 = +1
 			getstatic java/lang/System out Ljava/io/PrintStream;
 			# stack: +1-0 = +1
@@ -73,7 +83,7 @@ public synchronized class
 			# stack: +0-2 = -2
 			invokevirtual java/io/PrintStream#println(Ljava/lang/String;)V
 		L1
-		line 16 L1
+		line 18 L1
 			# stack: +1-0 = +1
 			aload ci
 			# stack: +1-0 = +1
@@ -81,7 +91,7 @@ public synchronized class
 			# stack: +1-1 = 0
 			putfield tfc/hookin/util/ci/CallInfo cancelled Z
 		L2
-		line 17 L2
+		line 19 L2
 			# stack: +0-0 = 0
 			return
 		L3

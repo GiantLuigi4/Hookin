@@ -4,13 +4,15 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
-import tfc.hookin.patches.InjectPatch;
+import tfc.hookin.patches.*;
 import tfc.hookin.patches.base.ClassPatch;
 import tfc.hookin.patches.base.InsnPatch;
 import tfc.hookin.patches.base.Patch;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 public class HookinPatcher {
 	// TODO: maybe a specially designed thing
@@ -19,8 +21,14 @@ public class HookinPatcher {
 	ArrayList<Class<?>> patchOrder = new ArrayList<>();
 	
 	public HookinPatcher() {
-		patchOrder.add(
-				InjectPatch.class
+		patchOrder.addAll(
+				Arrays.asList(
+						SwapSuperPatch.class,
+						InjectPatch.class,
+						RedirPatch.class,
+						RemoveMethodPatch.class,
+						DummyPatch.class
+				)
 		);
 	}
 	
@@ -53,7 +61,10 @@ public class HookinPatcher {
 		
 		int[] hits = new int[1];
 		
-		holder.patches.forEach((key, list) -> {
+		for (Class<?> aClass : patchOrder) {
+			List<Patch<?>> list = holder.patches.get(aClass);
+			if (list == null) continue;
+			
 			for (Patch<?> patch : list) {
 				
 				if (patch.target == TargetType.CLASS) {
@@ -77,7 +88,7 @@ public class HookinPatcher {
 					for (MethodNode method : node.methods)
 						if (ptch.targets(method))
 							myHits += ptch.patch(node, method);
-						
+					
 					hits[0] += myHits;
 					ptch.postApply(node, myHits);
 				} else if (patch instanceof InsnPatch) {
@@ -93,7 +104,7 @@ public class HookinPatcher {
 					ptch.postApply(node, myHits);
 				}
 			}
-		});
+		}
 		
 		return hits[0] > 0;
 	}

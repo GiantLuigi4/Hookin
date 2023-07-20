@@ -66,6 +66,8 @@ public enum Insn {
 	LRETURN(173, 0, 1),
 	// stack manipulation
 	DUP(89, 2, 1),
+	DUP_X1(90, 3, 2),
+	DUP_X2(91, 4, 3),
 	POP(87, 0, 1),
 	SWAP(95, 2, 2),
 	BIPUSH(16, 1, 0),

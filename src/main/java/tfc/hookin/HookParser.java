@@ -5,23 +5,20 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 import tfc.hookin.annotation.Hook;
+import tfc.hookin.annotation.hooks.Dummy;
 import tfc.hookin.annotation.hooks.Inject;
 import tfc.hookin.annotation.hooks.MethodRedir;
-import tfc.hookin.annotation.hooks.SwapSuper;
-import tfc.hookin.patches.InjectPatch;
-import tfc.hookin.patches.RedirPatch;
-import tfc.hookin.patches.SwapSuperPatch;
+import tfc.hookin.annotation.hooks.dangerous.RemoveMethods;
+import tfc.hookin.annotation.hooks.dangerous.SwapSuper;
+import tfc.hookin.patches.*;
 import tfc.hookin.patches.base.Patch;
 import tfc.hookin.struct.HookStruct;
-import tfc.hookin.struct.template.hooks.InjectStruct;
-import tfc.hookin.struct.template.hooks.MethodRedirStruct;
-import tfc.hookin.struct.template.hooks.SwapSuperStruct;
+import tfc.hookin.struct.template.hooks.*;
 import tfc.hookin.util.AnnotationParser;
 import tfc.hookin.util.TriFunction;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.function.BiFunction;
 
 public class HookParser {
 	private HashMap<String, HookFactory<?, ?, ?, ?>> HOOK_REGISTRY = new HashMap<>();
@@ -40,9 +37,7 @@ public class HookParser {
 		registerHookType(
 				SwapSuper.class,
 				SwapSuperStruct.class,
-				(struct, clazz, node) -> new SwapSuperPatch(
-						struct.value
-				)
+				(struct, clazz, node) -> new SwapSuperPatch(struct.value)
 		);
 		registerHookType(
 				MethodRedir.class,
@@ -54,6 +49,16 @@ public class HookParser {
 						struct.exclude,
 						(MethodNode) node
 				)
+		);
+		registerHookType(
+				RemoveMethods.class,
+				RemoveMethodsStruct.class,
+				(struct, clazz, node) -> new RemoveMethodPatch(struct.targets)
+		);
+		registerHookType(
+				Dummy.class,
+				DummyStruct.class,
+				(struct, clazz, node) -> new DummyPatch(struct)
 		);
 	}
 	

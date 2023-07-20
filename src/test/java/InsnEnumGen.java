@@ -101,6 +101,8 @@ public class InsnEnumGen {
 		
 		text.append("// stack manipulation\n");
 		addEnum(text, "DUP", 2, 1);
+		addEnum(text, "DUP_X1", 3, 2);
+		addEnum(text, "DUP_X2", 4, 3);
 		addEnum(text, "POP", 0, 1);
 		// TODO: deal with POP2
 		// TODO: single elements for SWAP, not words

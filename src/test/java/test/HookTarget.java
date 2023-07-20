@@ -7,6 +7,8 @@ public class HookTarget {
 		System.out.println(returnableMethod());
 		
 		System.out.println(returnableMethod2());
+		
+		System.out.println(aMethodThatDoesImportantCalculations());
 	}
 	
 	public static float returnableMethod2() {
@@ -22,5 +24,12 @@ public class HookTarget {
 	
 	public static void printLn(String text) {
 		System.err.println(text);
+	}
+	
+	public static int aMethodThatDoesImportantCalculations() {
+		int ft = 42;
+		int fs = 56;
+		
+		return ft + fs;
 	}
 }

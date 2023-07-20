@@ -38,4 +38,11 @@ public class TestHookin {
 	public static void redirPrint(String arg) {
 		System.out.println(arg);
 	}
+	
+	@Inject(target = @MethodTarget("aMethodThatDoesImportantCalculations"), point = @Point(Point.Type.RETURN), cancellable = true)
+	public static void postDoStuff(CallInfoReturnable<Integer> ci) {
+		System.out.println(ci.value);
+		
+		ci.value -= 3;
+	}
 }

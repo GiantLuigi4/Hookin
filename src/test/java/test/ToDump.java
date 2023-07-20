@@ -9,6 +9,8 @@ public class ToDump {
 		if (hookin$$CallInfo.cancelled) return;
 		
 		System.out.println("Test");// 5
+		
+		System.out.println((Float) 64f);
 	}
 	
 	public static void inject$test$hooks$TestHookin$_call_$preMain(String[] args, CallInfo ci) {
