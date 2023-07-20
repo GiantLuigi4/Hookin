@@ -5,6 +5,7 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 import sun.misc.Unsafe;
+import tfc.hookin.annotation.hinting.MergeStatic;
 import tfc.hookin.struct.BaseStruct;
 
 import java.lang.reflect.Array;
@@ -18,6 +19,13 @@ public class AnnotationParser {
 	public static boolean isAnnotation(Class<?> clazz, AnnotationNode node) {
 		String anno = "L" + clazz.getName().replace(".", "/") + ";";
 		return node.desc.equals(anno);
+	}
+	
+	public static boolean hasAnnotation(Class<?> annotationClass, FieldNode node) {
+		for (AnnotationNode allAnnotation : allAnnotations(node))
+			if (isAnnotation(annotationClass, allAnnotation))
+				return true;
+			return false;
 	}
 	
 	public static List<AnnotationNode> allAnnotations(ClassNode node) {

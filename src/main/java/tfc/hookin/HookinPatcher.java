@@ -27,7 +27,8 @@ public class HookinPatcher {
 						InjectPatch.class,
 						RedirPatch.class,
 						RemoveMethodPatch.class,
-						DummyPatch.class
+						DummyPatch.class,
+						HookPatch.class
 				)
 		);
 	}

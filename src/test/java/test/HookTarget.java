@@ -1,5 +1,7 @@
 package test;
 
+import test.hooks.TestHookin;
+
 public class HookTarget {
 	public static void main(String[] args) {
 		printLn("Test");
@@ -9,6 +11,8 @@ public class HookTarget {
 		System.out.println(returnableMethod2());
 		
 		System.out.println(aMethodThatDoesImportantCalculations());
+		
+		System.out.println("Field access test: " + TestHookin.constructor.get());
 	}
 	
 	public static float returnableMethod2() {
@@ -31,5 +35,9 @@ public class HookTarget {
 		int fs = 56;
 		
 		return ft + fs;
+	}
+	
+	public static void toShadow(int number) {
+		System.err.println(number);
 	}
 }

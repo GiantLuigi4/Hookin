@@ -10,7 +10,7 @@ public class SwapSuperPatch extends ClassPatch {
     public SwapSuperPatch(String newSuper) {
         this.newSuper = newSuper;
     }
-
+    
     protected String remap(String desc, String oldSuper) {
         return desc.replace("L" + oldSuper + ";", "L" + newSuper + ";");
     }

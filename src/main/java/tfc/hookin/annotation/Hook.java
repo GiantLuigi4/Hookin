@@ -9,4 +9,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.CLASS)
 public @interface Hook {
 	Class<?>[] value() default {};
+	boolean merge() default true;
 }

@@ -25,6 +25,14 @@ public class HookParser {
 	
 	public HookParser() {
 		registerHookType(
+				Hook.class,
+				HookStruct.class,
+				(struct, clazz, node) -> new HookPatch(
+						struct,
+						clazz
+				)
+		);
+		registerHookType(
 				Inject.class,
 				InjectStruct.class,
 				(struct, clazz, node) -> new InjectPatch(
@@ -119,27 +127,36 @@ public class HookParser {
 				));
 		}
 		
+		ArrayList<MethodNode> methodsToRemove = new ArrayList<>();
 		for (MethodNode method : clazz.methods) {
 			for (AnnotationNode allAnnotation : AnnotationParser.allAnnotations(method)) {
 				HookFactory<?, ?, ?, ?> factory = HOOK_REGISTRY.get(allAnnotation.desc);
-				if (factory != null)
+				if (factory != null) {
 					allPatches.add(factory.accept(
 							allAnnotation,
 							clazz, method
 					));
+					methodsToRemove.add(method);
+				}
 			}
 		}
 		
+		ArrayList<FieldNode> fieldsToRemove = new ArrayList<>();
 		for (FieldNode field : clazz.fields) {
 			for (AnnotationNode allAnnotation : AnnotationParser.allAnnotations(field)) {
 				HookFactory<?, ?, ?, ?> factory = HOOK_REGISTRY.get(allAnnotation.desc);
-				if (factory != null)
+				if (factory != null) {
 					allPatches.add(factory.accept(
 							allAnnotation,
 							clazz, field
 					));
+					fieldsToRemove.add(field);
+				}
 			}
 		}
+		
+		clazz.methods.removeAll(methodsToRemove);
+		clazz.fields.removeAll(fieldsToRemove);
 		
 		return new ParsedHook(hook, allPatches);
 	}
