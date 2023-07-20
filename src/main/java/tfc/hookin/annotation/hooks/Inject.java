@@ -14,6 +14,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD, ElementType.FIELD})
 @Retention(RetentionPolicy.CLASS)
 public @interface Inject {
+	// TODO: maybe make an option for this to be a bit less verbose
 	MethodTarget[] target();
 	Point point();
 	
