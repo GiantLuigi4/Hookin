@@ -1,0 +1,93 @@
+public synchronized class 
+	extends java/lang/Object
+{
+
+	public <init>()V {
+		L0
+		line 5 L0
+			# stack: +1-0 = +1
+			aload this
+			# stack: +0-1 = -1
+			invokespecial java/lang/Object#<init>()V
+			# stack: +0-0 = 0
+			return
+		L1
+		# variables:
+		# 	0 Ltest/ToDump; this L0 L1
+	}
+	
+	public static main([Ljava/lang/String;)V {
+		L0
+		line 7 L0
+			# stack: +1-0 = +1
+			new tfc/hookin/util/ci/CallInfo
+			# stack: +2-1 = +1
+			dup
+			# stack: +0-1 = -1
+			invokespecial tfc/hookin/util/ci/CallInfo#<init>()V
+			# stack: +0-1 = -1
+			astore hookin$$CallInfo
+		L1
+		line 8 L1
+			# stack: +1-0 = +1
+			aload args
+			# stack: +1-0 = +1
+			aload hookin$$CallInfo
+			# stack: +0-2 = -2
+			invokestatic test/ToDump#inject$test$hooks$TestHookin$_call_$preMain([Ljava/lang/String;Ltfc/hookin/util/ci/CallInfo;)V
+		L2
+		line 9 L2
+			# stack: +1-0 = +1
+			aload hookin$$CallInfo
+			# stack: +1-1 = 0
+			getfield tfc/hookin/util/ci/CallInfo cancelled Z
+			# stack: +0-1 = -1
+			ifeq L3
+			# stack: +0-0 = 0
+			return
+		L3
+		line 11 L3
+			# stack: +1-0 = +1
+			getstatic java/lang/System out Ljava/io/PrintStream;
+			# stack: +1-0 = +1
+			ldc string Test
+			# stack: +0-2 = -2
+			invokevirtual java/io/PrintStream#println(Ljava/lang/String;)V
+		L4
+		line 12 L4
+			# stack: +0-0 = 0
+			return
+		L5
+		# variables:
+		# 	0 [Ljava/lang/String; args L0 L5
+		# 	1 Ltfc/hookin/util/ci/CallInfo; hookin$$CallInfo L1 L5
+	}
+	
+	public static inject$test$hooks$TestHookin$_call_$preMain([Ljava/lang/String;Ltfc/hookin/util/ci/CallInfo;)V {
+		L0
+		line 15 L0
+			# stack: +1-0 = +1
+			getstatic java/lang/System out Ljava/io/PrintStream;
+			# stack: +1-0 = +1
+			ldc string hi
+			# stack: +0-2 = -2
+			invokevirtual java/io/PrintStream#println(Ljava/lang/String;)V
+		L1
+		line 16 L1
+			# stack: +1-0 = +1
+			aload ci
+			# stack: +1-0 = +1
+			iconst_1
+			# stack: +1-1 = 0
+			putfield tfc/hookin/util/ci/CallInfo cancelled Z
+		L2
+		line 17 L2
+			# stack: +0-0 = 0
+			return
+		L3
+		# variables:
+		# 	0 [Ljava/lang/String; args L0 L3
+		# 	1 Ltfc/hookin/util/ci/CallInfo; ci L0 L3
+	}
+	
+}
